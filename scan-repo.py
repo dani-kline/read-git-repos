@@ -8,15 +8,15 @@ def get_git_tree_from_clone(repo_name, origin):
 
     tree_full_paths = []
 
-    gh_client = get_github_client(origin)
-    gh_repo = get_github_repo(gh_client, repo_name)
+    
 
     # check if git exists on the system
     subprocess.run(["command", "-v", "git"], check=True, stdout=subprocess.DEVNULL)
 
     name = gh_repo.name
     clone_url = gh_repo.clone_url
-    default_branch = gh_repo.default_branch
+    default_branch = "main"
+    # default_branch = gh_repo.default_branch
 
     GIT_CLONE_PATH = f"{common.GIT_CLONE_TEMP_DIR}/{name}"
 
@@ -67,3 +67,16 @@ def get_git_tree_from_clone(repo_name, origin):
         })
 
     return tree_full_paths
+
+
+import typer
+
+# def main(gitrepo: str):
+#     print(f"Hello {name}")
+
+def main(giturl: str = typer.Option(..., "--gitrepo")):
+    print(f"hi {giturl}")
+
+if __name__ == "__main__":
+    typer.run(main)
+

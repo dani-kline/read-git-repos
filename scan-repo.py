@@ -2,6 +2,7 @@
 from asyncio.subprocess import PIPE
 import subprocess
 import re
+import json
 import typer
 
 MANIFEST_PATTERN_SCA = '^(?![.]).*(package[.]json|Gemfile[.]lock|pom[.]xml|build[.]gradle|.*[.]lockfile|build[.]sbt|.*req.*[.]txt|Gopkg[.]lock|go[.]mod|vendor[.]json|packages[.]config|.*[.]csproj|.*[.]fsproj|.*[.]vbproj|project[.]json|project[.]assets[.]json|composer[.]lock|Podfile|Podfile[.]lock)$'
@@ -92,28 +93,14 @@ def get_manifest_from_clone(repo_name, origin):
     print(f"  - removing cloned files in /tmp...")
     subprocess.run(["rm", "-fr", f"{GIT_CLONE_PATH}"], check=True)
 
-    #git_tree_lines = git_tree.stdout.splitlines()
-    #print(f"  - found {len(git_tree_lines)} tree items ...")
-
-    #for line in git_tree_lines:
-    #    sha, path = [line.split()[i] for i in (2, 3)]
-    #    tree_full_paths.append({
-    #        "sha": sha,
-    #        "path": path
-    #    })
-
     return manifest_count_dict
 
-
-# def main(gitrepo: str):
-#     print(f"Hello {name}")
 
 def main(giturl: str = typer.Option(..., "--gitrepo")):
     print(f"hi {giturl}")
     manifest_count = get_manifest_from_clone(giturl, "master")
-    for manifest_name in manifest_count:
-        print("type : ", manifest_name, " number: ", manifest_count[manifest_name])
-
+    serialize_manifest = json.dumps(manifest_count)
+    print (serialize_manifest)
 
 
 if __name__ == "__main__":

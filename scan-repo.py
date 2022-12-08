@@ -118,10 +118,10 @@ def main(
     ghtoken: str = typer.Argument (None, envvar="GITHUB_TOKEN", help="Github Personal Access Token, required if getting manifest files withing a GitHub Org.",show_default=False)):
     jsonoutputfile = open(outputfile, "w")
     jsonoutputfile.close()
+    
     if giturl:
-        print(f"hi {giturl}")
+        # print(f"hi {giturl}")
         manifest_count = get_manifest_from_clone(giturl, "master")
-        # Not JSON. The objects aren't between brackets.
         manifest_count_with_repo = {
                 "repo_url": giturl,
                 "manifest_files": manifest_count
@@ -133,22 +133,21 @@ def main(
             jsonoutputfile.close()
     if gitorg:
         ghrepos = get_repos_given_org(gitorg,ghtoken)
-        # jsonoutputfile = open(outputfile,"w")
+        dict_of_repos = []
         for ghrepo in ghrepos:
             giturl = ghrepo['html_url']
             defaultbranch = ghrepo['default_branch']
             manifest_count = get_manifest_from_clone(giturl, defaultbranch)
-            # this kind of works, but like in line 127-132 not JSON. The objects aren't between brackets and aren't separated by commas.
-            # ToDo: Find a better way to accomplish or alternative format
             manifest_count_with_repo = {
                 "full_repo_name": ghrepo['full_name'],
                 "manifest_files": manifest_count
             }
-            serialize_manifest = json.dumps(manifest_count_with_repo,indent=4,)
-            print(serialize_manifest)
-            with open (outputfile,"a") as jsonoutputfile:
-                jsonoutputfile.write(serialize_manifest)
-                jsonoutputfile.close()
+            dict_of_repos.append(manifest_count_with_repo)
+        serialize_manifest = json.dumps(dict_of_repos,indent=4)
+        print(serialize_manifest)
+        with open (outputfile,"a") as jsonoutputfile:
+            jsonoutputfile.write(serialize_manifest)
+            jsonoutputfile.close()
             
 
 

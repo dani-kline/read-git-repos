@@ -4,12 +4,27 @@ import subprocess
 import re
 import json
 import typer
+import requests
 
 MANIFEST_PATTERN_SCA = '^(?![.]).*(package[.]json|Gemfile[.]lock|pom[.]xml|build[.]gradle|.*[.]lockfile|build[.]sbt|.*req.*[.]txt|Gopkg[.]lock|go[.]mod|vendor[.]json|packages[.]config|.*[.]csproj|.*[.]fsproj|.*[.]vbproj|project[.]json|project[.]assets[.]json|composer[.]lock|Podfile|Podfile[.]lock)$'
 manifest_count_dict = {
     "package.json": 0,
     "pom.xml": 0
 }
+
+def get_repos_given_org(git_org, ghtoken):
+    """
+    Uses GH API to get list of repos for get_manifest_from_clone
+    """
+    baseghurl = 'https://api.github.com/orgs/'
+    getreposurl = ''.join([baseghurl,str(git_org),'/repos'])
+    getreposheader = {'Authorization': 'token' + ghtoken }
+    ghrepos = requests.get(getreposurl, headers=getreposheader).json()
+    return ghrepos
+  
+
+
+
 
 def get_manifest_from_clone(repo_name, origin):
     """
@@ -96,11 +111,46 @@ def get_manifest_from_clone(repo_name, origin):
     return manifest_count_dict
 
 
-def main(giturl: str = typer.Option(..., "--gitrepo")):
-    print(f"hi {giturl}")
-    manifest_count = get_manifest_from_clone(giturl, "master")
-    serialize_manifest = json.dumps(manifest_count)
-    print (serialize_manifest)
+def main(
+    giturl: str = typer.Option(None, "--gitrepo", help = "If getting manifest files for a repo, enter the git url with this option"), 
+    gitorg: str = typer.Option(None, "--gitorg", help="If getting manifest files for repos within a GitHub org, enter the name of your GitHub Organization with this option."), 
+    outputfile: str = typer.Argument("manifestcount.json", help="The name of the json file to output manifest file counts in the root directory."),
+    ghtoken: str = typer.Argument (None, envvar="GITHUB_TOKEN", help="Github Personal Access Token, required if getting manifest files withing a GitHub Org.",show_default=False)):
+    jsonoutputfile = open(outputfile, "w")
+    jsonoutputfile.close()
+    
+    if giturl:
+        # print(f"hi {giturl}")
+        manifest_count = get_manifest_from_clone(giturl, "master")
+        manifest_count_with_repo = {
+                "repo_url": giturl,
+                "manifest_files": manifest_count
+            }
+        serialize_manifest = json.dumps(manifest_count_with_repo,indent=4)
+        print (serialize_manifest)
+        with open(outputfile,"a") as jsonoutputfile:
+            jsonoutputfile.write(serialize_manifest)
+            jsonoutputfile.close()
+    if gitorg:
+        ghrepos = get_repos_given_org(gitorg,ghtoken)
+        dict_of_repos = []
+        for ghrepo in ghrepos:
+            giturl = ghrepo['html_url']
+            defaultbranch = ghrepo['default_branch']
+            manifest_count = get_manifest_from_clone(giturl, defaultbranch)
+            manifest_count_with_repo = {
+                "full_repo_name": ghrepo['full_name'],
+                "manifest_files": manifest_count
+            }
+            dict_of_repos.append(manifest_count_with_repo)
+        serialize_manifest = json.dumps(dict_of_repos,indent=4)
+        print(serialize_manifest)
+        with open (outputfile,"a") as jsonoutputfile:
+            jsonoutputfile.write(serialize_manifest)
+            jsonoutputfile.close()
+            
+
+
 
 
 if __name__ == "__main__":

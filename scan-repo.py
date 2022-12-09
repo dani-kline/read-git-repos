@@ -8,9 +8,22 @@ import requests
 
 MANIFEST_PATTERN_SCA = '^(?![.]).*(package[.]json|Gemfile[.]lock|pom[.]xml|build[.]gradle|.*[.]lockfile|build[.]sbt|.*req.*[.]txt|Gopkg[.]lock|go[.]mod|vendor[.]json|packages[.]config|.*[.]csproj|.*[.]fsproj|.*[.]vbproj|project[.]json|project[.]assets[.]json|composer[.]lock|Podfile|Podfile[.]lock)$'
 manifest_count_dict = {
+    "yarn.lock": 0,
+    "package-lock.json": 0,
     "package.json": 0,
-    "pom.xml": 0
-}
+    "Gemfile.lock": 0,
+    "pom.xml": 0,
+    "build.gradle": 0,
+    "build.sbt": 0,
+    "Pipfile": 0,
+    "requirements.txt": 0,
+    "Gopkg.lock": 0,
+    "vendor.json" : 0,
+    "project.assets": 0,
+    "packages.config": 0,
+    "composer.lock": 0,
+    "go.mod": 0
+    }
 
 def get_repos_given_org(git_org, ghtoken):
     """
@@ -21,10 +34,6 @@ def get_repos_given_org(git_org, ghtoken):
     getreposheader = {'Authorization': 'token' + ghtoken }
     ghrepos = requests.get(getreposurl, headers=getreposheader).json()
     return ghrepos
-  
-
-
-
 
 def get_manifest_from_clone(repo_name, origin):
     """
@@ -103,6 +112,10 @@ def get_manifest_from_clone(repo_name, origin):
         # number_manifest = out_files_repo.count(manifest_name)
         # print("type : ", manifest_name, " number: ", number_manifest)
         manifest_count_dict[manifest_name]= out_files_repo.count(manifest_name)
+    
+    for manifest_file_types,manifest_file_counts in list(manifest_count_dict.items()):
+        if manifest_file_counts == 0:
+            del manifest_count_dict[manifest_file_types] 
 
 
     print(f"  - removing cloned files in /tmp...")
@@ -113,15 +126,16 @@ def get_manifest_from_clone(repo_name, origin):
 
 def main(
     giturl: str = typer.Option(None, "--gitrepo", help = "If getting manifest files for a repo, enter the git url with this option"), 
-    gitorg: str = typer.Option(None, "--gitorg", help="If getting manifest files for repos within a GitHub org, enter the name of your GitHub Organization with this option."), 
+    gitdefaultbranch: str = typer.Argument ("main", envvar="DEFAULT_BRANCH", help="Default branch for the repo, required if getting manifest files within a repo."),
+    githuborg: str = typer.Option(None, "--githuborg", help="If getting manifest files for repos within a GitHub org, enter the name of the GitHub Organization with this option."), 
     outputfile: str = typer.Argument("manifestcount.json", help="The name of the json file to output manifest file counts in the root directory."),
-    ghtoken: str = typer.Argument (None, envvar="GITHUB_TOKEN", help="Github Personal Access Token, required if getting manifest files withing a GitHub Org.",show_default=False)):
+    ghtoken: str = typer.Argument (None, envvar="GITHUB_TOKEN", help="Github Personal Access Token, required if getting manifest files within a GitHub Org.",show_default=False)):
     jsonoutputfile = open(outputfile, "w")
     jsonoutputfile.close()
     
     if giturl:
         # print(f"hi {giturl}")
-        manifest_count = get_manifest_from_clone(giturl, "master")
+        manifest_count = get_manifest_from_clone(giturl, gitdefaultbranch)
         manifest_count_with_repo = {
                 "repo_url": giturl,
                 "manifest_files": manifest_count
@@ -131,8 +145,8 @@ def main(
         with open(outputfile,"a") as jsonoutputfile:
             jsonoutputfile.write(serialize_manifest)
             jsonoutputfile.close()
-    if gitorg:
-        ghrepos = get_repos_given_org(gitorg,ghtoken)
+    if githuborg:
+        ghrepos = get_repos_given_org(githuborg,ghtoken)
         dict_of_repos = []
         for ghrepo in ghrepos:
             giturl = ghrepo['html_url']
@@ -149,10 +163,5 @@ def main(
             jsonoutputfile.write(serialize_manifest)
             jsonoutputfile.close()
             
-
-
-
-
 if __name__ == "__main__":
     typer.run(main)
-

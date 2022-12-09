@@ -7,7 +7,7 @@ CLI Tool that accepts a git URL or a GitHub Organization and outputs a JSON file
 * Python (version 3.10.8 used to test)
 
 ### Known Limitations
-* If a manifest file is not defined in [manifest_count_dict](https://github.com/dani-kline/read-git-repos/blob/cf1b832845699b9ae1a05c75de609cc929c3aaa9/scan-repo.py#L10-L26) it will not be counted.
+* If a manifest file is not defined in [manifest_count_dict](https://github.com/dani-kline/read-git-repos/blob/502278db69dc8a65ac7a9a6f3e6bc064a44fb25e/scan-repo.py#L9-L26) it will not be counted.
 * Currently will count manifest files per repo in GitHub organizations, but cannot in BitBucket Teams or GitLab Groups.
 
 ### Usage

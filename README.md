@@ -11,8 +11,8 @@ CLI Tool that accepts a git URL or a GitHub Organization and outputs a JSON file
 * Currently will count manifest files per repo in GitHub organizations, but cannot in BitBucket Teams or GitLab Groups.
 
 ### Usage
-1. _Clone this repo locally 
-2. _Install the requirements from the requirements.txt `pip install -r requirements.txt`
+1. Clone this repo locally 
+2. Install the requirements from the requirements.txt `pip install -r requirements.txt`
 
 ```
 Usage: python scan-repo.py [OPTIONS] [GITDEFAULTBRANCH] [OUTPUTFILE] [GHTOKEN]
@@ -39,5 +39,5 @@ python scan-repo.py --gitrepo 'https://github.com/dani-kline/read-git-repos.git'
 See guidelines [here](.github/CONTRIBUTING.md)
 
 ### Further Exploration
-1. _Setup with [GitHub Python library](https://github.com/PyGithub/PyGithub) to use the GitHub Python Package to simplify getting the repos in a GitHub Org and getting the git tree.
-2. _Output additional information such as: repos found, and per repo--languages, Snyk webhooks, default branch
+1. Setup with [GitHub Python library](https://github.com/PyGithub/PyGithub) to use the GitHub Python Package to simplify getting the repos in a GitHub Org and getting the git tree.
+2. Output additional information such as: repos found, and per repo--languages, Snyk webhooks, default branch
